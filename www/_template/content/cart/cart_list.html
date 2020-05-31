@@ -1,0 +1,137 @@
+<script>
+	$(document).ready(function(){
+	});
+	
+	function cartEdit(ocCode){
+		if(!isProcess){
+			modalProgress.show();
+			
+			$.ajax({
+				type: 'POST',
+				url: '/cart/getCartInfoAjax',
+				data: {"oc_code" : ocCode},
+				async: true,
+				dataType: 'html',
+				success: function(data) {
+					modalProgress.close();
+					modalPop.show(data);
+				},
+				error: function(xhr, status) {
+					//alert('[' + status + ']\n\n' + xhr.responseText);
+					modalProgress.close();
+				}
+			});
+		}
+	}
+
+	function removeGoods(ocCode){
+		if(confirm("카트에서 삭제하시겠습니까?")){
+			if(!isProcess){
+				modalProgress.show();
+				
+				$.ajax({
+					type: 'POST',
+					url: '/cart/removeCartAjax',
+					data: {"oc_code" : ocCode},
+					async: true,
+					dataType: 'json',
+					success: function(data) {
+						modalProgress.close();
+						
+						alert(data.message);
+						if(data.code == 100){
+							location.reload();
+						}
+					},
+					error: function(xhr, status) {
+						//alert('[' + status + ']\n\n' + xhr.responseText);
+						modalProgress.close();
+					}
+				});
+			}
+		}
+	}
+	
+	function cartEditResult(b){
+		modalPop.close();
+		if(b){
+			location.reload();
+		}
+	}
+</script>
+
+<article class="default_contents">
+	<section class="cart_content">
+		<form name="cartForm" action="/payment/ready" method="post" onsubmit="return false;">
+			<h2>My Cart</h2>
+			<div class="cart_list">
+				<table>
+					<thead>
+						<th class="thumb">이미지</th>
+						<th class="info">상품명</th>
+						<th class="qty">수량</th>
+						<th class="price">가격</th>
+						<th class="total">합계</th>
+					</thead>
+					<tbody>
+					{@ rows}
+						<tr>
+							<td class="thumb"><img src="{image_path}{.thumb}"/></td>
+							<td class="info">
+								<h5><a href="javascript:detail('{.oc_code}');">{.title}</a></h5>
+								<div class="price">
+									<span class="{.discount_yn}">￦ {= number_format(.sale_price)}</span>
+									{? .discount_yn == "Y"}<span class="discount">￦ {= number_format(.discount_price)}</span>{/}
+									<span class="shipping">{? .tot_shipping_price > 0}￦ {= number_format(.shipping_price)}{? .shipping_count != '' && .shipping_count > 1} X {.shipping_count}{/}{:}FREE{/}</span>
+								</div>
+								<div class="option">
+									<ul>
+										{@ .list}
+										<li>
+											<input type="hidden" name="oc_code[]" value="{..oc_code}"/>
+											<input type="hidden" name="oc_qty[]" value="{..qty}"/>
+											<input type="hidden" name="oc_option_idx[]" value="{..option_idx}"/>
+											{? ..option_idx != 0}
+												{..option_name}{? ..option_price != 0}<div><span class="price">￦ {= number_format(..option_price)}</span>{/}<span class="qty">{..qty}</span></div>
+											{/}
+										</li>
+										{/}
+									</ul>
+								</div>
+								<div class="total">
+									<span class="price">￦ {= number_format(.tot_price)}</span><span class="qty">{.total_qty}</span>
+								</div>
+								<div class="btn_group">
+									<button onclick="removeGoods('{.oc_code}')">REMOVE</button>
+									<button onclick="cartEdit('{.oc_code}')">EDIT</button>
+								</div>
+							</td>
+							<td class="qty">
+								<span class="qty">{.total_qty}</span>
+							</td>
+							<td class="price">
+								<span class="{.discount_yn}">￦ {= number_format(.sale_price)}</span><br/>
+								{? .discount_yn == "Y"}<span class="discount">￦ {= number_format(.discount_price)}</span><br/>{/}
+								<span class="shipping">{? .tot_shipping_price > 0}￦ {= number_format(.shipping_price)}{? .shipping_count != '' && .shipping_count > 1} X {.shipping_count}{/}{:}FREE{/}</span>
+							</td>
+							<td class="total">
+								￦ {= number_format(.tot_price)}
+							</td>
+						</tr>
+					{/}
+					</tbody>
+				</table>
+			</div>
+			<div class="cart_pay">
+				<div class="content">
+					<ul>
+						<li><span>SUBTOTAL PRICE</span>￦ {= number_format(subtotal)}</li>
+						<li><span>SHIPPING PRICE</span>￦ {= number_format(tot_shipping_price)}</li>
+						<li class="est"><span>ESTIMATED PRICE</span>￦ {= number_format(subtotal + tot_shipping_price)}</li>
+					</ul>
+					<button class="btn_payment" onclick="document.cartForm.submit()">PAYMENT</button>
+				</div>
+			</div>
+		</form>
+	</section>
+</article>

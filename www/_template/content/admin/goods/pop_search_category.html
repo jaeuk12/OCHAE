@@ -1,0 +1,28 @@
+<script>
+	$(document).ready(function(){
+		$(".category_list li").click(function(){
+			var t = $(this);
+        	var title = t.attr("title");
+        	var code = t.attr("code");
+        	
+			parent.popSelectCategoryResult(title, code);
+		});
+	});
+
+</script>
+
+<article class="goods_category">
+	<section class="category_list">
+		<ul>
+			{@ rows}
+			<li code="{.code}" title="{.code_name}" class="{? .list != ''}child{/}">{.code_name}
+				<ul>
+					{@ .list}
+					<li code="{..code}" title="{..code_name}">{..code_name}</li>
+					{/}
+				</ul>
+			</li>
+			{/}
+		</ul>
+	</section>
+</article>

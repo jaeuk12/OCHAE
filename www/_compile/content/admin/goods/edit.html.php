@@ -1,0 +1,460 @@
+<?php /* Template_ 2.2.3 2016/08/21 19:24:08 D:\Work\OCHAE\www\_template\content\admin\goods\edit.html */
+$TPL_iRow_1=empty($TPL_VAR["iRow"])||!is_array($TPL_VAR["iRow"])?0:count($TPL_VAR["iRow"]);
+$TPL_oRow_1=empty($TPL_VAR["oRow"])||!is_array($TPL_VAR["oRow"])?0:count($TPL_VAR["oRow"]);
+$TPL_cRow_1=empty($TPL_VAR["cRow"])||!is_array($TPL_VAR["cRow"])?0:count($TPL_VAR["cRow"]);?>
+<style>
+	.goods_category .category_list ul {width: 100%;}
+	.goods_category .category_list ul li {background: url(/image/icon/icon_x.png) 90% no-repeat; background-size: 17px 17px; width:33.33%; float: left;}
+	
+	label {font-weight: bold;}
+</style>
+
+<script>
+	var isProcess = false;
+	var page = 1;
+	var totalPage = 1;
+
+	$(document).ready(function(){
+		$("#mode").val("<?php echo $TPL_VAR["mode"]?>");
+		$("#ret_url").val("<?php echo $TPL_VAR["ret_url"]?>");
+		
+<?php if($TPL_VAR["row"]!=""){?>
+		$("#oc_code").val("<?php echo $TPL_VAR["row"]["oc_code"]?>");
+		$("#goods_title").val("<?php echo $TPL_VAR["row"]["title"]?>");
+		$("#goods_cost_price").val("<?php echo $TPL_VAR["row"]["cost_price"]?>");
+		$("#goods_sale_price").val("<?php echo $TPL_VAR["row"]["sale_price"]?>");
+		$("#goods_stock").val("<?php echo $TPL_VAR["row"]["stock"]?>");
+		$("#goods_artist_name").val("<?php echo $TPL_VAR["row"]["artist_name"]?>");
+		$("#goods_discount").attr("checked", <?php if($TPL_VAR["row"]["discount_yn"]=='Y'){?>true<?php }else{?>false<?php }?>);
+		$("#goods_discount_price").val("<?php echo $TPL_VAR["row"]["discount_price"]?>");
+		$("#goods_shipping_price").val("<?php echo $TPL_VAR["row"]["shipping_price"]?>");
+		$("#goods_shipping_free").val("<?php echo $TPL_VAR["row"]["shipping_free"]?>");
+		$("#goods_shipping_qty").val("<?php echo $TPL_VAR["row"]["shipping_qty"]?>");
+		$("#goods_thumb").val("<?php echo $TPL_VAR["row"]["thumb"]?>");
+		$("input[name='goods_images[]'][value='<?php echo $TPL_VAR["row"]["thumb"]?>']").parent().addClass("focus");
+		
+<?php if($TPL_VAR["row"]["discount_yn"]=="Y"){?>
+			$("#label_discount_price").css("display", "block");
+<?php }else{?>
+			$("#label_discount_price").css("display", "none");
+<?php }?>
+		
+<?php if($TPL_VAR["row"]["artist_idx"]>0){?>
+				var li = $("<button type='button' class='small secondary medium-6 columns'><?php echo $TPL_VAR["row"]["artist_name"]?><input type='hidden' name='goods_artist' value='<?php echo $TPL_VAR["row"]["artist_idx"]?>'/></button>").click(function(){if(confirm("삭제하시겠습니까?")){$(this).remove();}});
+				$("#goods_artist").append(li);
+<?php }?>
+			
+		$("#goods_display_<?php if($TPL_VAR["row"]["display_yn"]=='N'){?>N<?php }else{?>Y<?php }?>").attr("checked", true);
+		$("#goods_pos_<?php if($TPL_VAR["row"]["pos_yn"]=='N'){?>N<?php }else{?>Y<?php }?>").attr("checked", true);
+		$("#goods_tax_<?php if($TPL_VAR["row"]["tax_yn"]=='Y'){?>Y<?php }else{?>N<?php }?>").attr("checked", true);
+<?php }?>
+		
+		$("#search_keyword").keydown(function(e){
+			if (event.keyCode == 13) {
+				searchArtistAjax();
+			}
+		});
+		
+		$(".goods_images ul li .del").click(function(){
+			$(this).parent().animate({"opacity":0}, 600, function(){$(this).remove();});
+		});
+		
+		$(".goods_images ul li").click(function(){
+			var t = $(this);
+			
+			$(".goods_images ul li").removeClass("focus");
+			t.addClass("focus");
+			
+			$("#goods_thumb").val(t.children("input[type=hidden]").val());
+		});
+	});
+	
+	function checkForm(){
+		document.goodsForm.submit();
+	}
+	
+	function cencel(){
+		document.goodsForm.reset();
+		history.back();
+	}
+	
+	function deleteGoods(){
+		document.location.href = "/admin/goods/delete?oc_code=<?php echo $TPL_VAR["row"]["oc_code"]?>";
+	}
+	
+	function searchArtistAjax(){
+		var type = $("#search_type");
+		var keyword = $("#search_keyword");
+		
+		if(!isProcess){
+			isProcess = true;
+		
+			$.ajax({
+				type: 'POST',
+				url: "/admin/common/searchArtistAjax",
+				data: { "search_type" : type.val(),
+						 "search_keyword" : keyword.val(),
+						 "page" : page },
+				async: true,
+				dataType: 'json',
+				success: function(data) {
+					isProcess = false;
+					var tbody = $("#search_artist_body");
+					var pageNum = $("#search_page_num");
+					
+					tbody.empty();
+					if(data != null && data.list != null){
+						var str = "";
+						var pagelist = "";
+						var rows = data.list;
+						page = data.page;
+						totalPage = data.total_page;
+						
+						pageNum.html(page + " / " +totalPage);
+						
+						for(var i=0; i<rows.length; i++){
+							var row = rows[i];
+							str += "<tr class='row' idx="+row.idx+" aname='"+row.name+"' tax='"+row.tax_yn+"'>"
+								+ "<td class='small-2 large-2 columns'>"+(data.total_num-i)+"</td>"
+								+ "<td class='small-3 large-3 columns'>"+row.idx+"</td>"
+								+ "<td class='small-7 large-7 columns'>"+row.name+"</td></tr>";
+						}
+						
+						tbody.append(str);
+						tbody.find("tr").click(function(){
+							var artistlist = $("#goods_artist");
+							var tr = $(this);
+							var li = $("<button type='button' class='small secondary medium-6 columns'>"+tr.attr("aname")+"<input type='hidden' name='goods_artist' value='"+tr.attr("idx")+"'/></button>").click(function(){if(confirm("삭제하시겠습니까?")){$(this).remove();$("#goods_artist_name").val("");}});
+							
+							artistlist.empty();
+							artistlist.append(li);
+							$("#goods_artist_name").val(tr.attr("aname"));
+							$('#popSearchArtist').foundation('reveal', 'close');
+						});
+					}
+				},
+				error: function(xhr, status) {
+					alert('[' + status + ']\n\n' + xhr.responseText);
+					isProcess = false;
+				}
+			});
+		}
+	}
+	
+	function nextPage(){
+		if(page < totalPage){
+			page++;
+			searchArtistAjax();
+		}
+	}
+	
+	function prevPage(){
+		if(page > 1){
+			page--;
+			searchArtistAjax();
+		}
+	}
+	
+	/**
+	 * 팝업 모달 닫기 
+	 */
+	function popClose(){
+		$("#popModal").foundation('reveal', 'close').attr("src", "");
+	}
+	
+	/**
+	 * 팝업 - 카테고리 추가 
+	 */
+	function popSearchCategory(){
+		var iframeSearchArtist = $("#popModal");
+		iframeSearchArtist.attr("src", "/admin/goods/popSearchCategory");
+	}
+	
+	/**
+	 * 
+	 */
+	function popSelectCategoryResult(title, code){
+		var list = $(".category_list ul");
+		var goodsCategory = $("input[name='goods_category[]']");
+		var isEquls = false;
+		
+		if(goodsCategory.length > 0){
+			$.each(goodsCategory, function(k, v){
+				if($(v).val() == code){
+					isEquls = true;
+				} 
+			});
+		}
+		
+		if(!isEquls){
+			var li = "<li onclick='$(this).remove()'>"+title+"<input type='hidden' name='goods_category[]' id='goods_category[]' value='"+code+"'/></li>";
+			list.append(li);
+		}
+		
+		popClose();
+	}
+	
+	function checkDiscount(){
+		var check = $("#goods_discount").is(":checked");
+		var labelDiscount = $("#label_discount_price");
+		
+		if(check){
+			labelDiscount.fadeIn();
+		}
+		else{
+			labelDiscount.fadeOut();
+		}
+	}
+	
+	function uploadImage(){
+		var fd = new FormData(document.goodsImageForm);
+		
+		if(!isProcess){
+			isProcess = true;
+			
+			$.ajax({
+				type: 'POST',
+				url: "/admin/goods/imageUploadAjax",
+				data: fd,
+				async: true,
+				dataType: 'json',
+				processData: false,
+	        	contentType: false,
+				cache: false,
+				success: function(data) {
+					isProcess = false;
+					
+					var lastLi = $(".goods_images ul li:last-child");
+					var li = $("<li></li>");
+					li.click(function(){
+						var t = $(this);
+						
+						$(".goods_images ul li").removeClass("focus");
+						t.addClass("focus");
+						
+						$("#goods_thumb").val(t.children("input[type=hidden]").val());
+					});
+					
+					var img = $("<img src='"+data.image_path+"/"+data.image_name+"'/>");
+					var close = $("<button class='del'>X</button>");
+					close.click(function(){
+						$(this).parent().animate({"opacity":0}, 600, function(){$(this).remove();});
+					});
+					
+					var input = $("<input type='hidden' name='goods_images[]'/>").val(data.image_path+data.image_name);
+					
+					li.append(img);
+					li.append(input);
+					li.append(close);
+					lastLi.before(li);
+					
+					$("#thumb_upload").val("");
+				},
+				error: function(xhr, status) {
+					// alert('[' + status + ']\n\n' + xhr.responseText);
+					isProcess = false;
+				}
+			});
+		}
+	}
+	
+	function addOption(){
+		var list = $(".option_list");
+		var row = "<div class='row'><input type='hidden' name='option_idx[]' value=''/>"
+					+"<div class='small-5 columns'><input type='text' name='option_name[]'/></div>"
+					+"<div class='small-5 columns'><input type='number' name='option_price[]'/></div>"
+					+"<div class='small-2 columns'><button class='tiny' onclick='$(this).parent().parent().remove()'>삭제</button></div></div>";
+					
+		list.append(row);
+	}
+	
+</script>
+
+<ul class="breadcrumbs">
+  <li class="unavailable"><a>상품관리</a></li>
+  <li class="current"><a>상품등록</a></li>
+</ul>
+
+<!-- 저자 추가 모달 -->
+<div id="popSearchArtist" class="reveal-modal" data-reveal>
+	<h4 class="modal-title">작가 추가</h4>
+	
+	<table>
+		<thead>
+			<tr class="row">
+				<th class="small-2 -2 columns">No.</th>
+				<th class="small-3 mmediumedium-3 columns">저자번호</th>
+				<th class="small-7 medium-7 columns">작가명</th>
+			</tr>
+		</thead>
+		<tbody id="search_artist_body">
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="3" class="row">
+					<button type="button" class="tiny secondary small-4 medium-2 columns" onclick="prevPage();">이전</button>
+					<span class="small-4 medium-8 columns" id="search_page_num" style="text-align: center; line-height: 34px; font-weight:bold;"></span>
+					<button type="button" class="tiny secondary small-4 medium-2 columns" onclick="nextPage();">다음</button>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3">
+					<div class="row">
+						<div class="small-4 large-3 columns">
+							<select id="search_type">
+								<option value="name">저자명</option>
+								<option value="id">아이디</option>
+							</select>
+						</div>
+						<div class="small-6 large-7 columns">
+							<input type="text" id="search_keyword" plaseholder="검색어"/>
+						</div>
+						<button type="submit" class="tiny small-2 large-2 columns" onclick="searchArtistAjax();">검색</button>
+					</div>
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+	<a class="close-reveal-modal">&#215;</a>
+</div><!-- /.modal -->
+
+<!-- modal -->
+<iframe id="popModal" class="reveal-modal" data-reveal width="100%" height="75%">
+</iframe>
+<!-- /.modal -->
+
+<form name="goodsImageForm" id="goodsImageForm" action="/admin/goods/images" method="post" enctype="multipart/form-data" onsubmit="return false;">
+	<label class="thumb_upload">상품 이미지<br/>
+		<input type="file" name="thumb_upload" id="thumb_upload" onchange="uploadImage()"/>
+	</label>
+</form>
+
+<form name="goodsForm" id="goodsForm" action="/admin/goods/process" method="post" enctype="multipart/form-data" onsubmit="return false;">
+	<input type="hidden" name="mode" id="mode"/>
+	<input type="hidden" name="oc_code" id="oc_code"/>
+	<input type="hidden" name="ret_url" id="ret_url"/>
+	<input type="hidden" name="goods_thumb" id="goods_thumb"/>
+	
+	<div class="goods_images">
+		<ul>
+<?php if($TPL_iRow_1){foreach($TPL_VAR["iRow"] as $TPL_V1){?>
+			<li><img src="<?php echo $TPL_VAR["image_path"]?><?php echo $TPL_V1["image_path"]?>/<?php echo $TPL_V1["image_name"]?>_medium<?php echo $TPL_V1["image_ext"]?>"><input type="hidden" name="goods_images[]" value="<?php echo $TPL_V1["image_path"]?>/<?php echo $TPL_V1["image_name"]?><?php echo $TPL_V1["image_ext"]?>"><button class="del">X</button></li>
+<?php }}?>
+			<li><label class="goods_image_plus" for="thumb_upload"><div>+</div></label></li>
+		</ul>
+	</div>
+	
+	<label for="goods_title">상품명
+		<input type="text" name="goods_title" id="goods_title"/>
+		<span class="label_info"></span>
+	</label>
+	<label for="goods_cost_price">상품 정가
+		<input type="number" name="goods_cost_price" id="goods_cost_price" />
+		<span class="label_info"></span>
+	</label>
+	<label for="goods_sale_price">상품 판매가
+		<input type="number" name="goods_sale_price" id="goods_sale_price"/>
+		<span class="label_info"></span>
+	</label>
+	<div class="row" style="margin-bottom:1rem;">
+	    <div>
+			<label>할인 여부</label>
+	     	<input type="checkbox" name="goods_discount" id="goods_discount" value="Y" onchange="checkDiscount()"/><label for="goods_discount">할인 책정</label>
+		</div>
+	</div>
+	<label for="goods_discount_price" id="label_discount_price">할인 가격
+		<input type="number" name="goods_discount_price" id="goods_discount_price"/>
+		<span class="label_info"></span>
+	</label>
+	<label for="goods_shipping_price">배송비
+		<input type="number" name="goods_shipping_price" id="goods_shipping_price"/>
+		<span class="label_info"></span>
+	</label>
+	<label for="goods_shipping_free">무료배송 금액
+		<input type="number" name="goods_shipping_free" id="goods_shipping_free"/>
+		<span class="label_info"></span>
+	</label>
+	<label for="goods_shipping_qty">배송비 추가 수량
+		<input type="number" name="goods_shipping_qty" id="goods_shipping_qty"/>
+		<span class="label_info"></span>
+	</label>
+	<label for="goods_stock">재고 수량
+		<input type="number" name="goods_stock" id="goods_stock"/>
+		<span class="label_info"></span>
+	</label>
+	<div class="row" style="margin-bottom:1rem;">
+	    <div class="goods_option">
+			<label>옵션 리스트</label>
+			<button class="tiny" onclick="addOption()">옵션 추가</button>
+			<div class="row">
+				<div class="small-5 columns">옵션명</div>
+				<div class="small-5 columns">옵션 가격</div>
+				<div class="small-2 columns"></div>
+			</div>
+			<div class="option_list">
+<?php if($TPL_oRow_1){foreach($TPL_VAR["oRow"] as $TPL_V1){?>
+				<div class="row">
+					<input type="hidden" name="option_idx[]" value="<?php echo $TPL_V1["idx"]?>"/>
+					<div class="small-5 columns"><input type="text" name="option_name[]" value="<?php echo $TPL_V1["option_name"]?>"/></div>
+					<div class="small-5 columns"><input type="number" name="option_price[]" value="<?php echo $TPL_V1["option_price"]?>"/></div>
+					<div class="small-2 columns"><button class="tiny" onclick="$(this).parent().parent().remove()">삭제</button></div>
+				</div>
+<?php }}?>
+			</div>
+		</div>
+	</div>
+	<div class="row" style="margin-bottom:1rem;">
+	    <div class="goods_category">
+			<label>카테고리</label>
+			<button class="tiny" data-reveal-id="popModal" onclick="popSearchCategory()">카테고리 추가</button>
+			<div class="category_list">
+				<ul>
+<?php if($TPL_cRow_1){foreach($TPL_VAR["cRow"] as $TPL_V1){?>
+					<li onclick="$(this).remove()">
+						<?php echo $TPL_V1["code_name"]?>
+
+						<input type="hidden" name="goods_category[]" id="goods_category[]" value="<?php echo $TPL_V1["code"]?>" />
+					</li>
+<?php }}?>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row" style="margin-bottom:1rem;">
+	    <div>
+			<label>작가</label>
+			<button class="tiny" data-reveal-id="popSearchArtist" onclick="searchArtistAjax();">작가 추가</button><br/>
+			<div id="goods_artist"></div>
+		</div>
+	</div>
+	<label for="goods_artist_name">작가명
+		<input type="text" name="goods_artist_name" id="goods_artist_name"/>
+		<span class="label_info"></span>
+	</label>
+	<div class="row" style="margin-bottom:1rem;">
+	    <div>
+			<label>공급가 부가세</label>
+	     	<input type="radio" name="goods_tax" id="goods_tax_Y" value="Y"/><label for="goods_tax_Y">별도</label>
+			<input type="radio" name="goods_tax" id="goods_tax_N" value="N"/><label for="goods_tax_N">포함</label>
+		</div>
+	</div>
+	<div class="row" style="margin-bottom:1rem;">
+	    <div>
+			<label>사이트 표시여부</label>
+	     	<input type="radio" name="goods_display" id="goods_display_Y" value="Y"/><label for="goods_display_Y">표시</label>
+			<input type="radio" name="goods_display" id="goods_display_N" value="N"/><label for="goods_display_N">숨김</label>
+		</div>
+	</div>
+	<div class="row" style="margin-bottom:5rem;">
+	    <div>
+			<label>포스 표시여부</label>
+	     	<input type="radio" name="goods_pos" id="goods_pos_Y" value="Y"/><label for="goods_pos_Y">표시</label>
+			<input type="radio" name="goods_pos" id="goods_pos_N" value="N"/><label for="goods_pos_N">숨김</label>
+		</div>
+	</div>
+	<div class="row">
+		<button type="button" class="tiny small-4 large-4 columns" onclick="checkForm();"><?php if($TPL_VAR["mode"]=="new"){?>등록<?php }else{?>변경<?php }?></button>
+<?php if($TPL_VAR["mode"]=="modify"){?><button type="button" class="tiny alert small-4 large-4 columns" onclick="deleteGoods();">삭제</button><?php }?>
+		<button type="button" class="tiny secondary small-4 large-4 columns" onclick="cencel();">취소</button>
+	</div>
+</form>

@@ -1,0 +1,114 @@
+<script>
+	$(document).ready(function(){
+		// 오른쪽 클릭 메뉴 막기
+        document.oncontextmenu = function() {return false;};
+        
+        // 마우스 다운 이벤트
+        $(".category_list ul li").mousedown(function(e){
+        	var t = $(this);
+        	var title = t.attr("title");
+        	var code = t.attr("code");
+        	var deep = t.attr("deep");
+        	
+            // 오른쪽 클릭 여부
+            if( e.button == 2 ) {
+                var buttonPop = $(".button_pop");
+                var bg = buttonPop.children(".bg");
+                var content = buttonPop.children(".content");
+                var li = $(".button_pop .content ul li:first-child");
+                
+                $("#code").val(code);
+                content.children("ul").removeClass().addClass("deep"+deep);
+                
+                bg.click(function(){
+                	buttonPop.hide();
+                });
+                li.html(title);
+                content.css({"left":e.pageX, "top":e.pageY});
+                buttonPop.show();
+            }
+            
+            offEventBubble(e);
+        });
+	});
+	
+	function addCategory(){
+		var parentCode = $("#code").val();
+		var categoryName = $("#popAddModal #insert_name").val();
+		
+		location.href="/admin/goods/addCategory?parent_code="+parentCode+"&category_name="+categoryName;
+	}
+	
+	function modifyCategory(){
+		var code = $("#code").val();
+		var categoryName = $("#popModifyModal #update_name").val();
+		
+		location.href="/admin/goods/modifyCategory?code="+code+"&category_name="+categoryName;
+	}
+	
+	function deleteCategory(){
+		var code = $("#code").val();
+		location.href="/admin/goods/deleteCategory?code="+code;
+	}
+	
+</script>
+
+<ul class="breadcrumbs">
+  <li class="unavailable"><a>상품관리</a></li>
+  <li class="current"><a>카테고리관리</a></li>
+</ul>
+
+<!-- 버튼 팝업-->
+<div class="button_pop">
+	<input type="hidden" id="code"/>
+	<div class="bg"></div>
+	<div class="content">
+		<ul>
+			<li></li>
+			<li data-reveal-id="popModifyModal">카테고리명 변경</li>
+			<li data-reveal-id="popAddModal">카테고리 추가</li>
+			<li onclick="deleteCategory()">카테고리 삭제</li>
+		</ul>
+	</div>
+</div>
+
+<!-- modal -->
+<div id="popAddModal" class="reveal-modal" data-reveal>
+	<label for="category_name">
+		카테고리 명
+		<input type="text" name="insert_name" id="insert_name"/>
+		<button class="tiny" style="float: right;" onclick="addCategory()">확인</button>
+	</label>
+</div><!-- /.modal -->
+
+<!-- modal -->
+<div id="popModifyModal" class="reveal-modal" data-reveal>
+	<label for="category_name">
+		카테고리 명
+		<input type="text" name="update_name" id="update_name"/>
+		<button class="tiny" style="float: right;" onclick="modifyCategory()">확인</button>
+	</label>
+</div><!-- /.modal -->
+
+<article class="goods_category">
+	<section class="category_list">
+		<ul>
+			{@ rows}
+			<li code="{.code}" deep="{.deep}" title="{.code_name}" class="{? .list != ''}child{/}">{.code_name}
+				<ul>
+					{@ .list}
+					<li code="{..code}" deep="{..deep}" title="{..code_name}" class="{? .list != ''}child{/}">{..code_name}
+						<ul>
+							{@ ..list}
+							<li code="{...code}" deep="{...deep}" title="{...code_name}">{...code_name}</li>
+							{/}
+						</ul>
+					</li>
+					{/}
+				</ul>
+			</li>
+			{/}
+		</ul>
+	</section>
+</article>
+

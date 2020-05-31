@@ -1,0 +1,61 @@
+<style>
+.in_stock_thumb {width:37px; height:37px; border:#ccc 0.2px solid;}
+.row label:nth-child(6), .row label:nth-child(7) {text-align: center;}
+.row label input[type=checkbox] {margin:11px 0 0 0;}
+button {margin:0;}
+
+</style>
+
+<script>
+	$(document).ready(function(){
+		$("#artist_idx").val({artist_idx});
+		$("#reg_day").val("{reg_day}");
+	});
+	
+	function inStockEdit(idx){
+		document.location = "/admin/goods/inStockAdd?mode=modify&idx="+idx;
+	}
+	
+	function inStockNew(){
+		document.location = "/admin/goods/inStockAdd?mode=new&artist_idx={artist_idx}";
+	}
+	
+</script>
+
+<ul class="breadcrumbs">
+	<li class="unavailable"><a>상품관리</a></li>
+	<li class="unavailable"><a>입고관리</a></li>
+	<li class="current"><a>입고 등록/변경</a></li>
+</ul>
+
+<button type="button" class="tiny success" id="btn_add_goods" onclick="inStockNew();">신규 입고</button>
+
+<h5>{artist.name} _ {reg_day} 입고내역</h5>
+<table>
+	<thead>
+		<tr>
+			<th>입고일</th>
+			<th>상품명</th>
+			<th>수량</th>
+			<th>단가</th>
+			<th>판매가</th>
+			<th>부가세</th>
+		</tr>
+	</thead>
+	<tbody id="goods_list">
+		{@ rows}
+		<tr onclick="inStockEdit({rows.idx})">
+			<td>{rows.reg_day}</td>
+			<td>{rows.title}</td>
+			<td>{rows.qty}</td>
+			<td>{rows.cost_price}</td>
+			<td>{rows.sale_price}</td>
+			<td>{rows.tax_yn}</td>
+		</tr>
+		{/}
+	</tbody>
+</table>
+
+<div class="row" style="margin-top:55px;">
+	<button type="button" class="tiny secondary columns" onclick="history.back();">뒤로</button>
+</div>

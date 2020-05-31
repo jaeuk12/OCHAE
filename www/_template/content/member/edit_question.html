@@ -1,0 +1,25 @@
+<script>
+	function submitQuestion(){
+		document.questionFrom.submit();
+	}
+</script>
+
+<form name="questionFrom" action="/member/editQuestion" method="post" onsubmit="return false;">
+	<input type="hidden" name="idx" value="{row.idx}"/>
+	<div class="edit_address">
+		<div class="my_account">
+			<div class="question_content">
+				<h3>EDIT QUESTION</h3>
+				<div class="form">
+					<label>QUESTION TITLE
+						<input type="text" name="title" value="{row.title}"/>
+					</label>
+					<label>QUESTION CONTENT
+						<textarea name="content">{row.content}</textarea>
+					</label>
+					<button onclick="submitQuestion()">SAVE</button>{? row.idx != ""}<button class="delete" onclick="document.location='/member/deleteQuestion?idx={row.idx}';">DELETE</button>{/}
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

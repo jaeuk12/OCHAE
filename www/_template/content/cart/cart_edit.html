@@ -1,0 +1,126 @@
+<script>
+	var ocCode = "{goods.oc_code}";
+	var salePrice = {?goods!=""}{? goods.discount_yn == 'Y'}{goods.discount_price}{:}{goods.sale_price}{/}{:}""{/};
+	
+	$(document).ready(function(){
+		$("#num_plus, #num_minus").click(function(){
+			var t = $(this);
+			var input = t.parent().children("input[type=text]");
+			var qty = input.val();
+			
+			if(t.attr("id") == "num_minus"){
+				if(qty < 2){
+					qty = 1;
+				}
+				else{
+					qty--;
+				}
+			}
+			else{
+				qty++;
+			}
+			
+			input.val(qty);
+			calculTotalPrice();
+		});
+		
+		$(".goods .qty_box .del").click(function(){
+			$(this).parent().parent().remove();
+			calculTotalPrice();
+		});
+		
+		calculTotalPrice();
+	});
+	
+	function applyCart(){
+		var fd = new FormData(document.editCartForm);
+		
+		if(!isProcess){
+			modalProgress.show();
+			
+			$.ajax({
+				type: 'POST',
+				url: "/cart/updateCartAjax",
+				data: fd,
+				async: true,
+				dataType: 'json',
+				processData: false,
+	        	contentType: false,
+				cache: false,
+				success: function(data) {
+					modalProgress.close();
+					
+					alert(data.message);
+					cartEditResult(true);
+				},
+				error: function(xhr, status) {
+					//alert('[' + status + ']\n\n' + xhr.responseText);
+					modalProgress.close();
+				}
+			});
+		}
+	}
+	
+	function calculTotalPrice(){
+		var goods = $(".goods");
+		var total = 0;
+		
+		if(goods.length>0){
+			$.each(goods, function(k, v){
+				var t = $(this);
+				
+				var optionPrice = Number(t.find(".qty_box").attr("option_price"));
+				var qty = Number(t.find("input[name='option_qty[]']").val());
+				
+				total += (salePrice+optionPrice)*qty;
+			});
+		}
+		else{
+			var qty = Number($(".qty_box input[name='option_qty[]']").val());
+			total = salePrice * qty;
+		}
+
+		$(".total_price b").html(number_format(isNaN(total)?0:total));
+	}
+</script>
+
+<article class="default_contents">
+	<div class="cart_edit">
+		<h2>EDIT GOODS</h2>
+		<div class="thumb"><img src="{image_path}{goods.thumb}"/></div>
+		<div class="info">
+			<h3>{goods.title}</h3>
+			<div class="sale_price {goods.discount_yn}"><span>PRICE</span>￦ {goods.sale_price}</div>
+			{? goods.discount_yn == "Y"}<div class="discount_price"><span>DISCOUNT</span>￦ {goods.discount_price}</div>{/}
+			<form name="editCartForm" onsubmit="return false;">
+				<input type="hidden" name="oc_code" value="{goods.oc_code}"/>
+				<ul>
+				{@ cartlist}
+				{? .option_idx != 0}
+				<li class="goods">
+					<span class="option_name">{.option_name}</span>
+					<div class="qty_box" option_price="{.option_price}">
+						<span class="option_price">{.option_price}</span>
+						<input type="hidden" name="option_idx[]" value="{.option_idx}"/>
+						<input type="text" name="option_qty[]" value="{.qty}" onkeydown="return numberCheck(event)"/><button id="num_plus">+</button><button id="num_minus">-</button><button class="del">X</button>
+					</div>
+				</li>
+				{:}
+				<li>
+					<span>QTY</span>
+					<div class="qty_box">
+						<input type="text" name="option_qty" value="{.qty}" onkeydown="return numberCheck(event)"/><button id="num_plus">+</button><button id="num_minus">-</button>
+					</div>
+				</li>
+				{/}
+				{/}
+				</ul>
+			</form>
+			<div class="total_price"><span>TOTAL PRICE</span>￦ <b></b></div>
+			<div class="button_group">
+				<button class="btn_update" onclick="applyCart()"><span>UPDATE</span></button>
+				<button onclick="cartEditResult(false);"><span>CANCEL</span></button>
+			</div>
+		</div>
+	</div>
+</article>

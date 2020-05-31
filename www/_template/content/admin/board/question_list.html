@@ -1,0 +1,70 @@
+<script>
+    $(document).ready(function(){
+    	$("#board_list tr").click(function(){
+    		var idx = $(this).attr("idx");
+    		addAnswer(idx);
+    	});
+    	
+    	{? search_type != ""}$("#search_type").val("{search_type}");{/}
+    	{? search_keyword != ""}$("#search_keyword").val("{search_keyword}");{/}
+    	
+    });
+    
+    function addAnswer(idx){
+		var retUrl = "ret_url="+encodeURIComponent(document.location);
+		
+		document.location.href = "/admin/board/answer?"+retUrl+"&kind={board_kind}&board_idx="+idx;
+    }
+
+</script>
+
+<ul class="breadcrumbs">
+	<li class="unavailable"><a>게시판관리</a></li>
+	<li class="current"><a>공지사항</a></li>
+</ul>
+
+<button type="button" class="tiny" onclick="addNotice();">공지사항 등록</button>
+<table>
+	<thead>
+		<tr>
+			<th>No.</th>
+			<th>제목</th>
+			<th>답변</th>
+			<th>변경일</th>
+			<th>등록일</th>
+		</tr>
+	</thead>
+	<tbody id="board_list">
+		{@ rows}
+		<tr class="{.delete_yn}" idx="{.idx}">
+			<td>{total_num - .index_}</td>
+			<td>{.title}</td>
+			<td class="{? .answer==""}N{:}Y{/}">{? .answer==""}미답변{:}답변완료{/}</td>
+			<td>{.modify_date}</td>
+			<td>{.reg_date}</td>
+		</tr>
+		{/}
+	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="8" class="pagination-centered">{pagelist}</td>
+		</tr>
+		<tr>
+			<td colspan="8" align="center">
+				<form name="searchForm" id="searchForm" action="/admin/board/list" method="get">
+					<div class="row">
+						<div class="small-4 large-3 columns">
+							<select name="search_type" id="search_type">
+								<option value="title">제목</option>
+							</select>
+						</div>
+						<div class="small-6 large-7 columns">
+							<input type="text" name="search_keyword" id="search_keyword">
+						</div>
+						<button type="submit" class="tiny small-2 large-2 columns">검색</button>
+					</div>
+				</form>
+			</td>
+		</tr>
+	</tfoot>
+</table>

@@ -1,0 +1,79 @@
+<script>
+    $(document).ready(function(){
+    	$("#goods_list tr").click(function(){
+    		var idx = $(this).attr("oc_idx");
+    		addNotice(idx);
+    	});
+    	
+    	{? search_type != ""}$("#search_type").val("{search_type}");{/}
+    	{? search_keyword != ""}$("#search_keyword").val("{search_keyword}");{/}
+    	
+    });
+    
+    function addNotice(idx){
+    	if(typeof idx == "undefined"){
+			idx = "";
+		}
+		
+		var retUrl = "ret_url="+encodeURIComponent(document.location);
+		
+		if(idx == ""){
+			document.location.href = "/admin/board/add?"+retUrl+"&kind=notice";
+		}
+		else{
+			document.location.href = "/admin/board/add?"+retUrl+"&kind=notice&board_idx="+idx;
+		}
+    }
+
+</script>
+
+<ul class="breadcrumbs">
+	<li class="unavailable"><a>게시판관리</a></li>
+	<li class="current"><a>공지사항</a></li>
+</ul>
+
+<button type="button" class="tiny" onclick="addNotice();">공지사항 등록</button>
+<table>
+	<thead>
+		<tr>
+			<th>No.</th>
+			<th>제목</th>
+			<th>조회수</th>
+			<th>변경일</th>
+			<th>등록일</th>
+		</tr>
+	</thead>
+	<tbody id="goods_list">
+		{@ rows}
+		<tr class="{.delete_yn}" oc_idx="{.idx}">
+			<td>{total_num - .index_}</td>
+			<td>{.title}</td>
+			<td>{.hit}</td>
+			<td>{.modify_date}</td>
+			<td>{.reg_date}</td>
+		</tr>
+		{/}
+	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="8" class="pagination-centered">{pagelist}</td>
+		</tr>
+		<tr>
+			<td colspan="8" align="center">
+				<form name="searchForm" id="searchForm" action="/admin/board/list" method="get">
+					<div class="row">
+						<div class="small-4 large-3 columns">
+							<select name="search_type" id="search_type">
+								<option value="title">제목</option>
+							</select>
+						</div>
+						<div class="small-6 large-7 columns">
+							<input type="text" name="search_keyword" id="search_keyword">
+						</div>
+						<button type="submit" class="tiny small-2 large-2 columns">검색</button>
+					</div>
+				</form>
+			</td>
+		</tr>
+	</tfoot>
+</table>

@@ -1,0 +1,94 @@
+<script>
+	$(document).ready(function(){
+		$("form[name=searchForm]").attr("action", document.location);
+		
+		if($(".default_list ul li").length >= {list_num}){
+			$(".pagelist .more").click(function(){
+				getMoreList();
+			});
+		}
+		else{
+			$(".pagelist .more").css("display", "none");
+		}
+	});
+	
+	function getMoreList(){
+		var goodsSize = $(".default_list ul li").length;
+		
+		$.ajax({
+			type: 'POST',
+			url: '/goods/moreGoodsListAjax',
+			data: {"category_code" : "{category_code}",
+					"keyword" : "{keyword}",
+					"size" : goodsSize },
+			async: true,
+			dataType: 'json',
+			success: function(data) {
+				if(data.code == 100){
+					var ul = $(".default_list ul");
+					$.each(data.list, function(k, v){
+						var li = $("<li>"
+								+"<div class='list_content'>"
+								+"<img src='{image_path}"+v.thumb.replace(".", "_medium.")+"' onclick='detail(\""+v.oc_code+"\")' />"
+								+"<div class='info'><div class='bg'></div>"
+								+"<div class='description'><p class='title'>"+v.title+"</p>"
+								+"<p class='artist'>"+v.artist_name+"</p>"
+								+"<p class='price "+v.discount_yn+"'>"+(v.discount_yn=="Y"?number_format(v.discount_price):number_format(v.sale_price))+"</p>"
+								+"</div></div></div></li>");
+								
+						ul.append(li);
+					});
+					
+					$(".pagelist .more .more_num").html(number_format(goodsSize+data.list.length));
+					$(".default_list .last_num").html(number_format(goodsSize+data.list.length));
+					
+					if(data.list.length < {list_num}){
+						$(".pagelist .more").remove();
+					}
+				}
+				else if(data.code == 200){
+					$(".pagelist .more").remove();
+				}
+			},
+			error: function(xhr, status) {
+				//alert('[' + status + ']\n\n' + xhr.responseText);
+			}
+		});
+	}
+</script>
+
+<article class="default_contents">
+	<section class="search_keyword">
+		<form name="searchForm" method="get">
+			<input type="text" name="search_keyword" placeholder="Search Goods Name or Artist Name" value="{keyword}"/><button class="btn_search">SEARCH</button>
+		</form>
+	</section>
+	
+	<section class="default_list">
+		{? keyword != ""}<h3><span class="total_num">{= number_format(total)}</span> Results found for "{keyword}"</h3>{/}
+		<h4>	<span class="first_num">{= number_format(first)}</span> - <span class="last_num">{= number_format(last)}</span> of <span class="total_num">{= number_format(total)}</span> Goods</h4>
+		<ul>
+			{@ rows}
+			<li>
+				<div class="list_content">
+					<img src="{image_path}{= str_replace('.', '_medium.', .thumb)}" onclick="detail('{.oc_code}')" />
+					<div class="info">
+						<div class="bg"></div>
+						
+						<div class="description">
+							<p class="title">{.title}</p>
+							<p class="artist">{.artist_name}</p>
+							<p class="price {.discount_yn}">{? .discount_yn == "Y"}{= number_format(.discount_price)}{:}{= number_format(.sale_price)}{/}</p>
+						</div>
+					</div>
+				</div>
+			</li>
+			{/}
+		</ul>
+	</section>
+	
+	<div class="pagelist">
+		{pagelist}
+		<button class="more"><img src="/image/icon/icon_triangle_down.png"/>MORE<span class="more_num">{= number_format(last)}</span> of {= number_format(total)}</button>
+	</div>
+</article>

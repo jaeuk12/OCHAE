@@ -1,0 +1,184 @@
+<script>
+	$(document).ready(function(){
+		$(".options > ul li").click(function(){
+			var t = $(this);
+			var ul = t.parent();
+			
+			if(ul.hasClass("open")){
+				ul.removeClass("open");
+				$(".options > ul li").removeClass("active");
+				t.addClass("active");
+				$("#option_choose").val(t.attr("idx"));
+				
+				$("input[name='post_code']").val(t.attr("post_code"));
+				$("input[name='address1']").val(t.attr("address1"));
+				$("input[name='address1_old']").val(t.attr("address1_old"));
+				$("input[name='address2']").val(t.attr("address2"));
+				$("input[name='contact1']").val(t.attr("contact1"));
+				$("input[name='contact2']").val(t.attr("contact2"));
+			}
+			else{
+				ul.addClass("open");
+			}
+		});
+		
+		$(".options ul li:first-child").click().click();
+		
+		if($(document).width() > 766){
+			$(document).scroll(function(){
+				var tt = $(this).scrollTop()+$(".nav_menu_bar").height();
+				var cp = $(".cart_pay");
+				var pr = $(".pay_ready").get(0).offsetTop;
+				
+				if(tt >= pr){
+					if(cp.css("position") != "absolute"){
+						cp.css({"position":"fixed", "top":"150px", "right":"0"});
+					}
+				}
+				else{
+					console.log(tt + " , " + pr + " , " + cp.css("position"));
+					if(cp.css("position") == "fixed"){
+						cp.css("position", "static");
+						cp.removeProp("padding-left");
+					}
+				}
+			});
+		}
+		else{
+			$(".footer").css("");
+		}
+	});
+	
+	function postResult(zipNo, roadAddr, jibunAddr){
+		$("input[name='post_code']").val(zipNo);
+		$("input[name='address1']").val(roadAddr);
+		$("input[name='address1_old']").val(jibunAddr);
+		
+		postModalPop.close();
+	}
+</script>
+
+<article class="pay_contents">
+	<section class="cart_content">
+		<h2>Payment</h2>
+		<div class="cart_list">
+			<table>
+				<thead>
+					<th class="thumb">이미지</th>
+					<th class="info">상품명</th>
+					<th class="qty">수량</th>
+					<th class="price">가격</th>
+					<th class="total">합계</th>
+				</thead>
+				<tbody>
+				{@ rows}
+					<tr>
+						<td class="thumb"><img src="{image_path}{.thumb}"/></td>
+						<td class="info">
+							<h5><a href="javascript:detail('{.oc_code}');">{.title}</a></h5>
+							<div class="price">
+								<span class="{.discount_yn}">￦ {= number_format(.sale_price)}</span>
+								{? .discount_yn == "Y"}<span class="discount">￦ {= number_format(.discount_price)}</span>{/}
+								<span class="shipping">{? .tot_shipping_price > 0}￦ {= number_format(.shipping_price)}{? .shipping_count != '' && .shipping_count > 1} X {.shipping_count}{/}{:}FREE{/}</span>
+							</div>
+							<div class="option">
+								<ul>
+									{@ .list}
+									<li>
+									{? ..idx != 0}
+										{..option_name}{? ..option_price != 0}<div><span class="price">￦ {= number_format(..option_price)}</span>{/}<span class="qty">{..qty}</span></div>
+									{/}
+									</li>
+									{/}
+								</ul>
+							</div>
+							<div class="total">
+								<span class="price">￦ {= number_format(.tot_price)}</span><span class="qty">{.total_qty}</span>
+							</div>
+						</td>
+						<td class="qty">
+							<span class="qty">{.total_qty}</span>
+						</td>
+						<td class="price">
+							<span class="{.discount_yn}">￦ {= number_format(.sale_price)}</span><br/>
+							{? .discount_yn == "Y"}<span class="discount">￦ {= number_format(.discount_price)}</span><br/>{/}
+							<span class="shipping">{? .tot_shipping_price > 0}￦ {= number_format(.shipping_price)}{? .shipping_count != '' && .shipping_count > 1} X {.shipping_count}{/}{:}FREE{/}</span>
+						</td>
+						<td class="total">
+							￦ {= number_format(.tot_price)}
+						</td>
+					</tr>
+				{/}
+				</tbody>
+			</table>
+		</div>
+	</section>
+	<div class="pay_ready">
+		<div class="order_info">
+			<div class="address_list options">
+				<h3>배송지 주소록</h3>
+				<input type="hidden" name="option_choose" id="option_choose"/>
+				<ul>
+					{@ addressRows}
+					<li post_code="{.post_code}" contact1="{.contact1}" contact2="{.contact2}" address1="{.address1}" address1_old="{.address1_old}" address2="{.address2}"><span class="op_title">{.shipping_name}</span></li>
+					{/}
+				</ul>
+			</div>
+			<div class="shipping_address">
+				<h3>배송지 주소</h3>
+				<label>
+					<span>받으실 분</span>
+					<input type="text" name="shipping_from" placeholder="받으실 분"/>
+				</label>
+				<label>
+					<span>우편번호</span>
+					<input type="text" name="post_code" placeholder="우편번호 찾기를 눌러주세요"/><button class="search_post" onclick="postPop()"></button>
+				</label>
+				<label>
+					<span>주소</span>
+					<input type="text" name="address1" placeholder="도로명 주소" readonly />
+					<input type="text" name="address1_old" placeholder="지번 주소" readonly/>
+				</label>
+				<label>
+					<span>주소 상세</span>
+					<input type="text" name="address2" placeholder="상세 주소"/>
+				</label>
+				<label>
+					<span>연락처1</span>
+					<input type="text" name="contact1" placeholder="필수 연락처"/><br/>
+				</label>
+				<label>
+					<span>연락처2</span>
+					<input type="text" name="contact2" placeholder="보조 연락처"/><br/>
+				</label>
+				<label>
+					<span>배송 메모</span>
+					<input type="text" name="shipping_memo"/>
+				</label>
+			</div>
+		</div>
+		
+		<div class="pay_method">
+			<h3>결제 정보</h3>
+			<div class="bank_info">
+				<p><b>은행명</b>우리은행</p>
+				<p><b>계좌번호</b>123456-123456-123456</p>
+				<p><b>예금주</b>갤러리 오채</p>
+				<p><b>입금주</b><input type="text" name="send_name"/></p>
+				<p>▷ 1주일이 지나면 주문내역은 자동으로 취소됩니다.</p>
+				<p>▷ 입금주가 다를시 확인이 어려우니 정확히 기입해주세요.</p>
+				<p>▷ 입금 확인은 AM 10:00 ~ PM 6:00 매시 정각에 합니다</p>
+			</div>
+		</div>
+	</div>
+	<div class="cart_pay">
+		<div class="content">
+			<ul>
+				<li><span>SUBTOTAL PRICE</span>￦ {= number_format(subtotal)}</li>
+				<li><span>SHIPPING PRICE</span>￦ {= number_format(tot_shipping_price)}</li>
+				<li class="est"><span>ESTIMATED PRICE</span>￦ {= number_format(subtotal + tot_shipping_price)}</li>
+			</ul>
+			<button class="btn_payment" onclick="document.cartForm.submit()">PAYMENT</button>
+		</div>
+	</div>
+</article>

@@ -1,0 +1,79 @@
+<style>
+    .table thead th:first-child {width:70px;}
+    .table thead th:nth-child(5) {width:80px;}
+    .table thead th:nth-child(6) {width:100px;}
+    .table thead th:nth-child(7) {width:100px;}
+    .table thead th:nth-child(8) {width:100px;}
+</style>
+
+<script>
+    $(document).ready(function(){
+        $("#member_list tr").click(function(){
+            var idx = $(this).attr("idx");
+            if(idx != "" && typeof idx != "undefined"){
+                var retUrl = "ret_url="+encodeURIComponent(document.location);
+                document.location.href = "/admin/member/info?"+retUrl+"&idx="+idx;
+            }
+        });
+        
+        {? search_type != ""}$("#search_type").val("{search_type}");{/}
+        {? search_keyword != ""}$("#search_keyword").val("{search_keyword}");{/}
+        
+    });
+</script>
+
+<ul class="breadcrumbs">
+  <li class="unavailable"><a>회원관리</a></li>
+  <li class="current"><a>회원목록</a></li>
+</ul>
+
+<table>
+    <thead>
+        <tr>
+            <th>No.</th>
+            <th>아이디</th>
+            <th>이름</th>
+            <th>성별</th>
+            <th>생년월일</th>
+            <th>수정일</th>
+            <th>가입일</th>
+        </tr>
+    </thead>
+    <tbody id="member_list">
+        {@ rows}
+        <tr idx="{.idx}">
+            <td>{total_num - .index_}</td>
+            <td>{.id}</td>
+            <td>{.name}</td>
+            <td>{? .gender == "M"}남{: .gender=="W"}여{:}{/}</td>
+            <td>{.birthday}</td>
+            <td>{.modify_date}</td>
+            <td>{.reg_date}</td>
+        </tr>        {/}
+    </tbody>
+    <tfoot>
+    	<tr>
+            <td colspan="7" class="pagination-centered">{pagelist}</td>
+        </tr>
+        <tr>
+            <td colspan="7" align="center">
+                <form name="searchForm" id="searchForm" action="/admin/member/list" method="get">
+                	<div class="row">
+	                    <div class="small-4 large-3 columns">
+	                        <select name="search_type" id="search_type">
+	                            <option value="id">아이디</option>
+	                            <option value="name">이름</option>
+	                            <option value="tel">연락처</option>
+	                            <option value="phone">휴대폰</option>
+	                        </select>
+	                    </div>
+	                    <div class="small-6 large-7 columns">
+	                        <input type="text" name="search_keyword" id="search_keyword">
+	                    </div>
+	                    <button type="submit" class="tiny small-2 large-2 columns">검색</button>
+	            	</div>
+                </form>
+            </td>
+        </tr>
+    </tfoot>
+</table>

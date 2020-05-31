@@ -1,0 +1,14 @@
+<script>
+	$(document).ready(function(){
+		{? left_menu != ""}
+		$(".my_account_left #{left_menu}").addClass("active");
+		{/}
+	});
+</script>
+<div class="my_account_left">
+	<ul>
+		<li id="profile"><a href="/member/profile">PROFILE</a></li>
+		<li id="address"><a href="/member/address">ADDRESS</a></li>
+		<li id="question"><a href="/member/question">QUESTION</a></li>
+	</ul>
+</div>

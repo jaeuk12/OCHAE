@@ -1,0 +1,45 @@
+<script>
+	$(document).ready(function(){
+		$(".post_keyword input").keydown(function(e){
+			if (e.keyCode == 13){
+				postPop($(this).val(), 1);
+			}
+		});
+		
+		$(".post_list > ul li").click(function(){
+			var t = $(this);
+			postResult(t.attr("zipNo"), t.attr("roadAddr"), t.attr("jibunAddr"));
+		});
+	});
+</script>
+
+<div class="post_code">
+	<h3>SEARCH ADDRESS</h3>
+	<div>
+		<p><b>도로명 + 건물번호, 건물명, 읍/면/동/리 + 지번</b></p>
+	</div>
+	<div class="post_keyword">
+		<input type="text" value="{keyword}"/><button onclick="postPop($(this).prev().val(), 1)">SEARCH</button>
+	</div>
+	{? keyword != ""}
+	<div class="post_list">
+		<h5>{juso.size_ + ((page-1)*list_num)} of {common.totalCount} <span>Results found for</span> "{keyword}"</h5>
+		<ul>
+			{@ juso}
+			<li zipNo="{.zipNo}" roadAddr="{.roadAddr}" jibunAddr="{.jibunAddr}">
+				<span>{.zipNo}</span>{.roadAddr}
+			</li>
+			{/}
+		</ul>
+		{? common.totalCount >= list_num}
+		<div class="pagelist">
+			<ul class="pagination">
+				{@ range(start_page, end_page)}
+				<li {? page == .value_}class="current"{/}><a {? page != .value_}href="javascript:postPop('{keyword}', {.value_});"{/}>{.value_}</a></li>
+				{/}
+			</ul>
+		</div>
+		{/}
+	</div>
+	{/}
+</div>
